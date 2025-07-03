@@ -164,6 +164,7 @@ cython_debug/
 # Project specific files
 *.session
 *.session-journal
+sessions/
 bot_response_times.log
 stop.flag
 

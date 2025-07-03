@@ -34,7 +34,8 @@ def load_config() -> Dict[str, Any]:
         "message_count": int(os.getenv("MESSAGE_COUNT", "20")),
         "max_runtime_hours": int(os.getenv("MAX_RUNTIME_HOURS", "24")),
         "response_threshold_seconds": float(os.getenv("RESPONSE_THRESHOLD_SECONDS", "5")),
-        "stop_flag_file": "stop.flag"
+        "stop_flag_file": "stop.flag",
+        "session_dir": "sessions"  # Directory for session files
     }
     
     # Validate required configuration
@@ -52,6 +53,9 @@ def load_config() -> Dict[str, Any]:
     
     if not config["target_bot_username"].startswith("@"):
         config["target_bot_username"] = f"@{config['target_bot_username']}"
+    
+    # Create session directory if it doesn't exist
+    os.makedirs(config["session_dir"], exist_ok=True)
     
     return config
 
@@ -95,6 +99,39 @@ def signal_handler(signum, frame):
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
+# ----- SESSION MANAGEMENT -----
+def get_session_name(username: str) -> str:
+    """Get the session file name for a username."""
+    clean_username = username.replace('@', '').replace('/', '_').replace('\\', '_')
+    return f"{clean_username}_bot_monitor"
+
+def get_session_path(username: str) -> str:
+    """Get the full session file path for a username."""
+    session_name = get_session_name(username)
+    return os.path.join(CONFIG["session_dir"], session_name)
+
+def check_existing_session(username: str) -> bool:
+    """Check if a session already exists for the username."""
+    session_path = get_session_path(username)
+    session_file = f"{session_path}.session"
+    return os.path.exists(session_file)
+
+def ensure_session_directory():
+    """Ensure the session directory exists with proper permissions."""
+    session_dir = CONFIG["session_dir"]
+    try:
+        os.makedirs(session_dir, exist_ok=True)
+        # Test write permissions
+        test_file = os.path.join(session_dir, '.test_write')
+        with open(test_file, 'w') as f:
+            f.write('test')
+        os.remove(test_file)
+        logger.info(f"📁 Session directory ready: {session_dir}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Cannot create or write to session directory '{session_dir}': {e}")
+        return False
+
 # ----- UTILITY -----
 def generate_random_message(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
@@ -111,16 +148,38 @@ async def monitor_bot_responses(username: str) -> int:
         Number of slow responses detected
     """
     client = None
+    session_path = get_session_path(username)
+    session_exists = check_existing_session(username)
+    
+    # Ensure session directory is ready
+    if not ensure_session_directory():
+        logger.error(f"❌ [{username}] Cannot prepare session directory")
+        return -1
+    
     try:
+        # Create client with persistent session
+        # Use absolute path for session
         client = Client(
-            name=f"{username.replace('@', '')}_session", 
+            name=session_path,
             api_id=CONFIG["api_id"], 
             api_hash=CONFIG["api_hash"]
         )
         
-        logger.info(f"🔗 [{username}] Connecting to Telegram...")
+        if session_exists:
+            logger.info(f"� [{username}] Using existing session (no login required)")
+        else:
+            logger.info(f"🔑 [{username}] Creating new session (login required)")
+        
+        logger.info(f"�🔗 [{username}] Connecting to Telegram...")
         await client.start()
         logger.info(f"✅ [{username}] Successfully connected to Telegram")
+        
+        # Verify session is working by getting basic info
+        try:
+            me = await client.get_me()
+            logger.info(f"👤 [{username}] Authenticated as: {me.first_name} (@{me.username if me.username else 'no_username'})")
+        except Exception as e:
+            logger.warning(f"⚠️ [{username}] Could not get user info: {e}")
         
         slow_responses = 0
         end_time = datetime.now() + timedelta(minutes=CONFIG["duration_minutes"])
@@ -288,10 +347,25 @@ def main():
         logger.info(f"✅ Configuration loaded successfully")
         logger.info(f"🎯 Target bot: {CONFIG['target_bot_username']}")
         
+        # Check session status
+        target_username = CONFIG['target_bot_username']
+        session_exists = check_existing_session(target_username)
+        
+        if session_exists:
+            logger.info(f"💾 Found existing session for {target_username} - no login required")
+        else:
+            logger.info(f"🔑 No existing session found for {target_username} - first-time login required")
+            logger.info("📱 You will need to enter your phone number and verification code")
+        
         # Check if .env file exists
         if not os.path.exists('.env'):
             logger.warning("⚠️ No .env file found. Using environment variables or defaults.")
             logger.info("💡 Create a .env file based on .env.example for easier configuration.")
+        
+        # Check sessions directory and permissions
+        if not ensure_session_directory():
+            logger.error("❌ Cannot create or access session directory. Exiting.")
+            sys.exit(1)
         
         # Run the main loop
         asyncio.run(main_loop())

@@ -12,6 +12,8 @@ A robust Python application for monitoring and measuring response times of Teleg
 - **Environment Configuration**: Secure credential management with `.env` files
 - **Batch Processing**: Monitor bots in configurable batches with customizable intervals
 - **Stop Controls**: Multiple ways to stop monitoring (signals, flag files, time limits)
+- **Persistent Sessions**: Automatic session management - login once, run multiple times
+- **Session Management**: Built-in tools to manage and clear sessions
 
 ## 📋 Requirements
 
@@ -24,22 +26,26 @@ A robust Python application for monitoring and measuring response times of Teleg
 **For first-time users:**
 
 1. Clone and enter the project:
+
    ```bash
    git clone <repository-url>
    cd tgbotResponseTest
    ```
 
 2. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. Run the guided setup:
+
    ```bash
    python setup.py
    ```
 
 4. Test your configuration:
+
    ```bash
    python test_config.py
    ```
@@ -52,33 +58,38 @@ A robust Python application for monitoring and measuring response times of Teleg
 ## �🛠️ Installation
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository-url>
    cd tgbotResponseTest
    ```
 
 2. **Create a virtual environment** (recommended):
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. **Install dependencies**:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. **Set up configuration**:
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Edit `.env` with your configuration:
+
    ```env
    # Telegram API Configuration
    API_ID=your_api_id_here
    API_HASH=your_api_hash_here
-   
+
    # Bot Monitoring Configuration
    TARGET_BOT_USERNAME=@your_bot_username
    DURATION_MINUTES=1
@@ -96,22 +107,23 @@ A robust Python application for monitoring and measuring response times of Teleg
 
 ## ⚙️ Configuration Options
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `API_ID` | Telegram API ID | - | ✅ |
-| `API_HASH` | Telegram API Hash | - | ✅ |
-| `TARGET_BOT_USERNAME` | Bot username to monitor | @hwjz | ✅ |
-| `DURATION_MINUTES` | Duration between monitoring batches | 1 | ❌ |
-| `MESSAGE_COUNT` | Number of messages per batch | 20 | ❌ |
-| `MAX_RUNTIME_HOURS` | Maximum total runtime | 24 | ❌ |
-| `RESPONSE_THRESHOLD_SECONDS` | Threshold for slow responses | 5 | ❌ |
-| `LOOP` | Enable continuous monitoring | true | ❌ |
+| Variable                     | Description                         | Default | Required |
+| ---------------------------- | ----------------------------------- | ------- | -------- |
+| `API_ID`                     | Telegram API ID                     | -       | ✅       |
+| `API_HASH`                   | Telegram API Hash                   | -       | ✅       |
+| `TARGET_BOT_USERNAME`        | Bot username to monitor             | @hwjz   | ✅       |
+| `DURATION_MINUTES`           | Duration between monitoring batches | 1       | ❌       |
+| `MESSAGE_COUNT`              | Number of messages per batch        | 20      | ❌       |
+| `MAX_RUNTIME_HOURS`          | Maximum total runtime               | 24      | ❌       |
+| `RESPONSE_THRESHOLD_SECONDS` | Threshold for slow responses        | 5       | ❌       |
+| `LOOP`                       | Enable continuous monitoring        | true    | ❌       |
 
 ## 🚦 Usage
 
 ### Basic Usage
 
 Start monitoring with default settings:
+
 ```bash
 python res_bot.py
 ```
@@ -119,6 +131,7 @@ python res_bot.py
 ### Environment Variables
 
 You can also use environment variables instead of a `.env` file:
+
 ```bash
 export API_ID=your_api_id
 export API_HASH=your_api_hash
@@ -170,23 +183,77 @@ The application includes comprehensive error handling for:
 
 ## 🔄 Session Management
 
-Telegram sessions are automatically managed:
-- Session files are created for each bot username
-- Sessions are reused across runs to avoid re-authentication
-- Session files are excluded from version control (`.gitignore`)
+The application now features **persistent session management**, meaning you only need to authenticate once:
+
+### 🔑 **First Run (Authentication Required)**
+
+- On first run, you'll need to provide your phone number and verification code
+- Sessions are automatically saved in the `sessions/` directory
+- This is a **one-time setup** per account
+
+### 🚀 **Subsequent Runs (No Authentication)**
+
+- Sessions are automatically reused
+- No need to re-enter credentials or verification codes
+- Instant startup and monitoring
+
+### 🛠️ **Session Management Tools**
+
+**List existing sessions:**
+
+```bash
+python manage_sessions.py list
+```
+
+**Clear all sessions:**
+
+```bash
+python manage_sessions.py clear
+```
+
+**Clear specific session:**
+
+```bash
+python manage_sessions.py clear @botusername
+```
+
+**Interactive management:**
+
+```bash
+python manage_sessions.py
+```
+
+### 📁 **Session Storage**
+
+- Sessions are stored in `sessions/` directory
+- Files are automatically excluded from git
+- Safe to delete if you want to re-authenticate
+- Each bot gets its own session file
+
+### 💡 **Session Tips**
+
+- Sessions persist across computer restarts
+- If authentication fails, clear the session and try again
+- Sessions are tied to your Telegram account, not the bot
+- You can run multiple bots with the same session
 
 ## 📁 Project Structure
 
 ```
 tgbotResponseTest/
 ├── res_bot.py              # Main application
+├── manage_sessions.py      # Session management utility
+├── setup.py               # Guided setup script
+├── test_config.py         # Configuration validator
 ├── requirements.txt        # Python dependencies
 ├── .env.example           # Environment configuration template
 ├── .env                   # Your configuration (not in git)
 ├── .gitignore            # Git ignore rules
 ├── README.md             # This file
+├── LICENSE               # MIT license
+├── sessions/             # Session storage directory (generated)
 ├── bot_response_times.log # Application logs (generated)
-└── *.session*            # Telegram session files (generated)
+└── *.session*            # Legacy session files (auto-moved to sessions/)
 ```
 
 ## 🐛 Troubleshooting
@@ -194,15 +261,18 @@ tgbotResponseTest/
 ### Common Issues
 
 1. **"API_ID is required"**
+
    - Ensure your `.env` file contains valid `API_ID` and `API_HASH`
    - Check that the `.env` file is in the project root directory
 
 2. **"Authentication failed"**
+
    - Verify your API credentials are correct
    - Delete session files and try again
    - Ensure your Telegram account is active
 
 3. **"Rate limited"**
+
    - The application handles rate limiting automatically
    - Consider increasing delays between messages if persistent
 
@@ -214,6 +284,7 @@ tgbotResponseTest/
 ### Debug Mode
 
 For additional debugging, you can modify the logging level in the code:
+
 ```python
 logger.setLevel(logging.DEBUG)
 ```
@@ -245,6 +316,7 @@ This tool is for legitimate monitoring purposes only. Please respect Telegram's 
 ## 📞 Support
 
 If you encounter any issues or have questions, please open an issue in the GitHub repository with:
+
 - Detailed description of the problem
 - Steps to reproduce
 - Your configuration (without sensitive data)
