@@ -5,30 +5,35 @@ A **production-ready** Python application for monitoring and measuring response 
 ## 🚀 Features
 
 ### 🔄 **Session Management**
+
 - **One-Time Authentication**: Login once with phone/code, then run forever
 - **Persistent Sessions**: Automatic session storage and reuse
 - **Session Tools**: Built-in utilities to manage, list, and clear sessions
 - **Secure Storage**: Sessions stored in dedicated directory, excluded from git
 
 ### 📊 **Monitoring & Analytics**
+
 - **Real-time Monitoring**: Send messages to bots and measure response times
 - **Performance Metrics**: Track fast/slow responses with configurable thresholds
 - **Batch Processing**: Monitor bots in configurable batches with intervals
 - **Detailed Logging**: Comprehensive logging to both file and console with emojis
 
 ### 🛡️ **Robustness & Reliability**
+
 - **Advanced Error Handling**: Handles API rate limits, connection issues, and auth errors
 - **Graceful Shutdown**: Proper signal handling (Ctrl+C, SIGTERM) for clean termination
 - **Auto Recovery**: Handles network issues and Telegram API errors gracefully
 - **Stop Controls**: Multiple ways to stop monitoring (signals, flag files, time limits)
 
 ### 🔧 **Developer Experience**
+
 - **Environment Configuration**: Secure credential management with `.env` files
 - **Guided Setup**: Interactive setup script for easy configuration
 - **Configuration Validation**: Built-in tests to validate setup before running
 - **Session Testing**: Utilities to test and validate session management
 
 ### 🔒 **Security & Privacy**
+
 - **Credential Protection**: API keys stored in `.env` file (never in code)
 - **Session Encryption**: Telegram sessions use encrypted storage
 - **Git Safety**: All sensitive files automatically excluded from version control
@@ -44,6 +49,7 @@ A **production-ready** Python application for monitoring and measuring response 
 **Complete setup in 5 steps:**
 
 1. **Clone and setup:**
+
    ```bash
    git clone <repository-url>
    cd tgbotResponseTest
@@ -51,18 +57,21 @@ A **production-ready** Python application for monitoring and measuring response 
    ```
 
 2. **Configure credentials:**
+
    ```bash
    python setup.py
    # Interactive setup - enter your API credentials
    ```
 
 3. **Validate setup:**
+
    ```bash
    python test_config.py
    # Confirms everything is ready
    ```
 
 4. **Test session management:**
+
    ```bash
    python test_session_fix.py
    # Validates session handling
@@ -76,10 +85,11 @@ A **production-ready** Python application for monitoring and measuring response 
    ```
 
 ### 🔑 **First Run Experience**
+
 ```bash
 $ python res_bot.py
 🔧 Loading configuration...
-✅ Configuration loaded successfully  
+✅ Configuration loaded successfully
 🎯 Target bot: @your_bot
 🔑 No existing session found - first-time login required
 📱 You will need to enter your phone number and verification code
@@ -92,6 +102,7 @@ Please enter the code: 12345
 ```
 
 ### ⚡ **Subsequent Runs**
+
 ```bash
 $ python res_bot.py
 🔧 Loading configuration...
@@ -153,18 +164,19 @@ $ python res_bot.py
 
 ## ⚙️ Configuration Options
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `API_ID` | Telegram API ID | - | ✅ |
-| `API_HASH` | Telegram API Hash | - | ✅ |
-| `TARGET_BOT_USERNAME` | Bot username to monitor | @hwjz | ✅ |
-| `DURATION_MINUTES` | Duration between monitoring batches | 1 | ❌ |
-| `MESSAGE_COUNT` | Number of messages per batch | 20 | ❌ |
-| `MAX_RUNTIME_HOURS` | Maximum total runtime | 24 | ❌ |
-| `RESPONSE_THRESHOLD_SECONDS` | Threshold for slow responses | 5 | ❌ |
-| `LOOP` | Enable continuous monitoring | true | ❌ |
+| Variable                     | Description                         | Default | Required |
+| ---------------------------- | ----------------------------------- | ------- | -------- |
+| `API_ID`                     | Telegram API ID                     | -       | ✅       |
+| `API_HASH`                   | Telegram API Hash                   | -       | ✅       |
+| `TARGET_BOT_USERNAME`        | Bot username to monitor             | @hwjz   | ✅       |
+| `DURATION_MINUTES`           | Duration between monitoring batches | 1       | ❌       |
+| `MESSAGE_COUNT`              | Number of messages per batch        | 20      | ❌       |
+| `MAX_RUNTIME_HOURS`          | Maximum total runtime               | 24      | ❌       |
+| `RESPONSE_THRESHOLD_SECONDS` | Threshold for slow responses        | 5       | ❌       |
+| `LOOP`                       | Enable continuous monitoring        | true    | ❌       |
 
 ### 📝 **Example Configuration**
+
 ```env
 # Telegram API Configuration (Required)
 API_ID=12345678
@@ -184,11 +196,13 @@ LOOP=true
 ### 🎯 **Primary Usage**
 
 **Start monitoring:**
+
 ```bash
 python res_bot.py
 ```
 
 **Stop monitoring:**
+
 - Press `Ctrl+C` (graceful shutdown)
 - Create `stop.flag` file in project directory
 - Automatic stop after `MAX_RUNTIME_HOURS`
@@ -196,6 +210,7 @@ python res_bot.py
 ### 🛠️ **Utility Scripts**
 
 **Setup and Configuration:**
+
 ```bash
 python setup.py           # Interactive setup wizard
 python test_config.py     # Validate configuration
@@ -203,6 +218,7 @@ python test_session_fix.py # Test session management
 ```
 
 **Session Management:**
+
 ```bash
 python manage_sessions.py list              # List all sessions
 python manage_sessions.py clear             # Clear all sessions
@@ -213,6 +229,7 @@ python manage_sessions.py                   # Interactive mode
 ### 🌍 **Environment Variables**
 
 You can also use environment variables instead of `.env` file:
+
 ```bash
 export API_ID=your_api_id
 export API_HASH=your_api_hash
@@ -223,6 +240,7 @@ python res_bot.py
 ### 🔄 **Configuration Options**
 
 **Run with custom settings:**
+
 ```bash
 # Set custom message count and threshold
 export MESSAGE_COUNT=50
@@ -231,6 +249,7 @@ python res_bot.py
 ```
 
 **Single run (no loop):**
+
 ```bash
 export LOOP=false
 python res_bot.py
@@ -241,8 +260,9 @@ python res_bot.py
 The application provides **enhanced logging** with emojis and detailed information:
 
 ### 🎨 **Log Message Types**
+
 - **⚡ Fast Response**: Response received within threshold
-- **🐌 Slow Response**: Response took longer than threshold  
+- **🐌 Slow Response**: Response took longer than threshold
 - **❌ No Response**: No response received within 10 seconds
 - **🚦 Rate Limited**: Temporary rate limiting by Telegram
 - **🔄 Session Status**: Session creation and reuse information
@@ -273,6 +293,7 @@ The application provides **enhanced logging** with emojis and detailed informati
 ```
 
 ### 📁 **Log Files**
+
 - **Console Output**: Real-time monitoring with colors and emojis
 - **File Output**: `bot_response_times.log` for permanent records
 - **Session Logs**: Stored in `sessions/` directory (auto-managed)
@@ -369,27 +390,32 @@ tgbotResponseTest/
 ### 📂 **Directory Breakdown**
 
 **Core Application:**
+
 - `res_bot.py` - Main monitoring application with all features
 - `requirements.txt` - Minimal dependencies (pyrogram, python-dotenv)
 
 **Utilities & Setup:**
+
 - `setup.py` - Interactive configuration wizard
-- `test_config.py` - Validates setup and dependencies  
+- `test_config.py` - Validates setup and dependencies
 - `test_session_fix.py` - Tests session management functionality
 - `manage_sessions.py` - Session management tools
 
 **Configuration:**
+
 - `.env.example` - Template configuration file
 - `.env` - Your actual configuration (excluded from git)
 - `.gitignore` - Comprehensive exclusions for Python projects
 
 **Documentation:**
+
 - `README.md` - Complete documentation
 - `PROJECT_SUMMARY.md` - High-level project overview
 - `SESSION_IMPROVEMENTS.md` - Session management details
 - `LICENSE` - MIT license for open source distribution
 
 **Generated Files:**
+
 - `sessions/` - Directory for persistent Telegram sessions
 - `bot_response_times.log` - Application logs and monitoring data
 
